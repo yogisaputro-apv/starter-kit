@@ -1,0 +1,15 @@
+fragment LifeData on Life {
+    id
+    firstName
+    lastName
+    fullName
+    title
+    birthday
+    hobbies
+}
+
+query listLives {
+    lives: listLives {
+        ...LifeData
+    }
+}
