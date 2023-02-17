@@ -4,7 +4,7 @@ import { UserSortingField } from './enums';
 import { ObjectId } from 'mongodb';
 import { FileUploadPromise } from '../context';
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import { User, UserSession, ExternalLink, ResetPasswordLink } from '../../database';
+import { User, UserSession, ExternalLink, ResetPasswordLink, Life } from '../../database';
 import { SystemMessage } from '../../utils/systemMessage';
 import { AuthenticationResponse } from './typings';
 import { Context, RootDocument } from '../context';
@@ -70,6 +70,25 @@ export type GraphQLAuthenticatorSetup = {
 
 export type GraphQLExternalLink = GraphQLResetPasswordLink;
 
+export type GraphQLLife = {
+  /** birthday of a Life */
+  birthday: Scalars['DateTime'];
+  /** details of a Life */
+  description: Scalars['String'];
+  /** first name of a Life */
+  firstName: Scalars['String'];
+  /** display full name which is described as first name + last name */
+  fullName: Scalars['String'];
+  /** list of Life's hobbies */
+  hobbies: Array<Scalars['String']>;
+  /** Life object ID */
+  id?: Maybe<Scalars['ObjectID']>;
+  /** last name of a Life */
+  lastName: Scalars['String'];
+  /** title of Life */
+  title: Scalars['String'];
+};
+
 export type GraphQLMessageNotice = {
   date: Scalars['DateTime'];
   message: Scalars['String'];
@@ -92,12 +111,18 @@ export type GraphQLMutation = {
   completeWebPublicKeyCredentialRegistration: Scalars['Boolean'];
   /** Create a new account/user */
   createAccount: GraphQLUser;
+  /** create new Life document */
+  createLife: GraphQLLife;
   /** Disable 2FA / Authenticator for the signed user */
   disableAuthenticator: GraphQLUser;
   /** Enable 2FA / Authenticator for the signed user */
   enableAuthenticator: GraphQLUser;
   /** Generate a challenge to authenticate with web credentials */
   generateWebCredentialAuthentication?: Maybe<GraphQLAuthenticationWithWebPublicKeyCredential>;
+  /** get life by ID */
+  getLife: GraphQLLife;
+  /** List all lives */
+  listLives: Array<GraphQLLife>;
   /**
    * Take the Json Web Token (JWT) from headers and returns a new one with a renewed lifetime
    *
@@ -171,6 +196,16 @@ export type GraphQLMutationCreateAccountArgs = {
 };
 
 
+export type GraphQLMutationCreateLifeArgs = {
+  birthday: Scalars['DateTime'];
+  description: Scalars['String'];
+  firstName: Scalars['String'];
+  hobbies: Array<Scalars['String']>;
+  lastName: Scalars['String'];
+  title: Scalars['String'];
+};
+
+
 export type GraphQLMutationEnableAuthenticatorArgs = {
   secret: Scalars['String'];
   token: Scalars['String'];
@@ -179,6 +214,11 @@ export type GraphQLMutationEnableAuthenticatorArgs = {
 
 export type GraphQLMutationGenerateWebCredentialAuthenticationArgs = {
   username: Scalars['String'];
+};
+
+
+export type GraphQLMutationGetLifeArgs = {
+  id: Scalars['ObjectID'];
 };
 
 
@@ -218,8 +258,16 @@ export type GraphQLQuery = {
   generateAuthenticatorChallenge?: Maybe<GraphQLAuthenticationWithWebPublicKeyCredential>;
   /** Generate authenticator secret and qrcode */
   generateAuthenticatorSetup: GraphQLAuthenticatorSetup;
+  /**
+   * get Life based on ID
+   *
+   * Life ID is required
+   */
+  getLife: GraphQLLife;
   /** Fetch WebAuthn security keys for a username */
   getWebauthnKeys: Array<Scalars['String']>;
+  /** Fetch list of lives */
+  listLives: Array<GraphQLLife>;
   /** List users */
   listUsers: GraphQLPaginatedUsers;
   /** Retrieve a link information */
@@ -229,6 +277,11 @@ export type GraphQLQuery = {
 
 export type GraphQLQueryGenerateAuthenticatorChallengeArgs = {
   username: Scalars['String'];
+};
+
+
+export type GraphQLQueryGetLifeArgs = {
+  id: Scalars['ObjectID'];
 };
 
 
@@ -416,6 +469,7 @@ export type GraphQLResolversTypes = {
   ExternalLink: ResolverTypeWrapper<ExternalLink>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   JSONObject: ResolverTypeWrapper<Scalars['JSONObject']>;
+  Life: ResolverTypeWrapper<Life>;
   MessageNotice: ResolverTypeWrapper<GraphQLMessageNotice>;
   Mutation: ResolverTypeWrapper<RootDocument>;
   ObjectID: ResolverTypeWrapper<Scalars['ObjectID']>;
@@ -451,6 +505,7 @@ export type GraphQLResolversParentTypes = {
   ExternalLink: ExternalLink;
   Int: Scalars['Int'];
   JSONObject: Scalars['JSONObject'];
+  Life: Life;
   MessageNotice: GraphQLMessageNotice;
   Mutation: RootDocument;
   ObjectID: Scalars['ObjectID'];
@@ -518,6 +573,18 @@ export interface GraphQLJsonObjectScalarConfig extends GraphQLScalarTypeConfig<G
   name: 'JSONObject';
 }
 
+export type GraphQLLifeResolvers<ContextType = Context, ParentType extends GraphQLResolversParentTypes['Life'] = GraphQLResolversParentTypes['Life']> = {
+  birthday?: Resolver<GraphQLResolversTypes['DateTime'], ParentType, ContextType>;
+  description?: Resolver<GraphQLResolversTypes['String'], ParentType, ContextType>;
+  firstName?: Resolver<GraphQLResolversTypes['String'], ParentType, ContextType>;
+  fullName?: Resolver<GraphQLResolversTypes['String'], ParentType, ContextType>;
+  hobbies?: Resolver<Array<GraphQLResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<Maybe<GraphQLResolversTypes['ObjectID']>, ParentType, ContextType>;
+  lastName?: Resolver<GraphQLResolversTypes['String'], ParentType, ContextType>;
+  title?: Resolver<GraphQLResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type GraphQLMessageNoticeResolvers<ContextType = Context, ParentType extends GraphQLResolversParentTypes['MessageNotice'] = GraphQLResolversParentTypes['MessageNotice']> = {
   date?: Resolver<GraphQLResolversTypes['DateTime'], ParentType, ContextType>;
   message?: Resolver<GraphQLResolversTypes['String'], ParentType, ContextType>;
@@ -533,9 +600,12 @@ export type GraphQLMutationResolvers<ContextType = Context, ParentType extends G
   changePasswordFromToken?: Resolver<GraphQLResolversTypes['Boolean'], ParentType, ContextType, RequireFields<GraphQLMutationChangePasswordFromTokenArgs, 'token'>>;
   completeWebPublicKeyCredentialRegistration?: Resolver<GraphQLResolversTypes['Boolean'], ParentType, ContextType, RequireFields<GraphQLMutationCompleteWebPublicKeyCredentialRegistrationArgs, 'response' | 'token'>>;
   createAccount?: Resolver<GraphQLResolversTypes['User'], ParentType, ContextType, RequireFields<GraphQLMutationCreateAccountArgs, 'email' | 'password' | 'username'>>;
+  createLife?: Resolver<GraphQLResolversTypes['Life'], ParentType, ContextType, RequireFields<GraphQLMutationCreateLifeArgs, 'birthday' | 'description' | 'firstName' | 'hobbies' | 'lastName' | 'title'>>;
   disableAuthenticator?: Resolver<GraphQLResolversTypes['User'], ParentType, ContextType>;
   enableAuthenticator?: Resolver<GraphQLResolversTypes['User'], ParentType, ContextType, RequireFields<GraphQLMutationEnableAuthenticatorArgs, 'secret' | 'token'>>;
   generateWebCredentialAuthentication?: Resolver<Maybe<GraphQLResolversTypes['AuthenticationWithWebPublicKeyCredential']>, ParentType, ContextType, RequireFields<GraphQLMutationGenerateWebCredentialAuthenticationArgs, 'username'>>;
+  getLife?: Resolver<GraphQLResolversTypes['Life'], ParentType, ContextType, RequireFields<GraphQLMutationGetLifeArgs, 'id'>>;
+  listLives?: Resolver<Array<GraphQLResolversTypes['Life']>, ParentType, ContextType>;
   refreshCredentials?: Resolver<GraphQLResolversTypes['String'], ParentType, ContextType>;
   requestWebPublicKeyCredentialRegistration?: Resolver<GraphQLResolversTypes['WebPublicKeyCredentialRegistrationRequest'], ParentType, ContextType>;
   revokeUserSession?: Resolver<GraphQLResolversTypes['Boolean'], ParentType, ContextType, RequireFields<GraphQLMutationRevokeUserSessionArgs, 'id'>>;
@@ -557,7 +627,9 @@ export type GraphQLQueryResolvers<ContextType = Context, ParentType extends Grap
   currentUser?: Resolver<Maybe<GraphQLResolversTypes['User']>, ParentType, ContextType>;
   generateAuthenticatorChallenge?: Resolver<Maybe<GraphQLResolversTypes['AuthenticationWithWebPublicKeyCredential']>, ParentType, ContextType, RequireFields<GraphQLQueryGenerateAuthenticatorChallengeArgs, 'username'>>;
   generateAuthenticatorSetup?: Resolver<GraphQLResolversTypes['AuthenticatorSetup'], ParentType, ContextType>;
+  getLife?: Resolver<GraphQLResolversTypes['Life'], ParentType, ContextType, RequireFields<GraphQLQueryGetLifeArgs, 'id'>>;
   getWebauthnKeys?: Resolver<Array<GraphQLResolversTypes['String']>, ParentType, ContextType, RequireFields<GraphQLQueryGetWebauthnKeysArgs, 'username'>>;
+  listLives?: Resolver<Array<GraphQLResolversTypes['Life']>, ParentType, ContextType>;
   listUsers?: Resolver<GraphQLResolversTypes['PaginatedUsers'], ParentType, ContextType, RequireFields<GraphQLQueryListUsersArgs, 'pagination'>>;
   retrieveLink?: Resolver<Maybe<GraphQLResolversTypes['ExternalLink']>, ParentType, ContextType, RequireFields<GraphQLQueryRetrieveLinkArgs, 'id'>>;
 };
@@ -637,6 +709,7 @@ export type GraphQLResolvers<ContextType = Context> = {
   DateTime?: GraphQLScalarType;
   ExternalLink?: GraphQLExternalLinkResolvers<ContextType>;
   JSONObject?: GraphQLScalarType;
+  Life?: GraphQLLifeResolvers<ContextType>;
   MessageNotice?: GraphQLMessageNoticeResolvers<ContextType>;
   Mutation?: GraphQLMutationResolvers<ContextType>;
   ObjectID?: GraphQLScalarType;

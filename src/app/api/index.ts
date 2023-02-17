@@ -66,6 +66,26 @@ export type AuthenticatorSetup = {
 
 export type ExternalLink = ResetPasswordLink;
 
+export type Life = {
+  __typename?: 'Life';
+  /** birthday of a Life */
+  birthday: Scalars['DateTime'];
+  /** details of a Life */
+  description: Scalars['String'];
+  /** first name of a Life */
+  firstName: Scalars['String'];
+  /** display full name which is described as first name + last name */
+  fullName: Scalars['String'];
+  /** list of Life's hobbies */
+  hobbies: Array<Scalars['String']>;
+  /** Life object ID */
+  id?: Maybe<Scalars['ObjectID']>;
+  /** last name of a Life */
+  lastName: Scalars['String'];
+  /** title of Life */
+  title: Scalars['String'];
+};
+
 export type MessageNotice = {
   __typename?: 'MessageNotice';
   date: Scalars['DateTime'];
@@ -90,12 +110,18 @@ export type Mutation = {
   completeWebPublicKeyCredentialRegistration: Scalars['Boolean'];
   /** Create a new account/user */
   createAccount: User;
+  /** create new Life document */
+  createLife: Life;
   /** Disable 2FA / Authenticator for the signed user */
   disableAuthenticator: User;
   /** Enable 2FA / Authenticator for the signed user */
   enableAuthenticator: User;
   /** Generate a challenge to authenticate with web credentials */
   generateWebCredentialAuthentication?: Maybe<AuthenticationWithWebPublicKeyCredential>;
+  /** get life by ID */
+  getLife: Life;
+  /** List all lives */
+  listLives: Array<Life>;
   /**
    * Take the Json Web Token (JWT) from headers and returns a new one with a renewed lifetime
    *
@@ -169,6 +195,16 @@ export type MutationCreateAccountArgs = {
 };
 
 
+export type MutationCreateLifeArgs = {
+  birthday: Scalars['DateTime'];
+  description: Scalars['String'];
+  firstName: Scalars['String'];
+  hobbies: Array<Scalars['String']>;
+  lastName: Scalars['String'];
+  title: Scalars['String'];
+};
+
+
 export type MutationEnableAuthenticatorArgs = {
   secret: Scalars['String'];
   token: Scalars['String'];
@@ -177,6 +213,11 @@ export type MutationEnableAuthenticatorArgs = {
 
 export type MutationGenerateWebCredentialAuthenticationArgs = {
   username: Scalars['String'];
+};
+
+
+export type MutationGetLifeArgs = {
+  id: Scalars['ObjectID'];
 };
 
 
@@ -218,8 +259,16 @@ export type Query = {
   generateAuthenticatorChallenge?: Maybe<AuthenticationWithWebPublicKeyCredential>;
   /** Generate authenticator secret and qrcode */
   generateAuthenticatorSetup: AuthenticatorSetup;
+  /**
+   * get Life based on ID
+   *
+   * Life ID is required
+   */
+  getLife: Life;
   /** Fetch WebAuthn security keys for a username */
   getWebauthnKeys: Array<Scalars['String']>;
+  /** Fetch list of lives */
+  listLives: Array<Life>;
   /** List users */
   listUsers: PaginatedUsers;
   /** Retrieve a link information */
@@ -229,6 +278,11 @@ export type Query = {
 
 export type QueryGenerateAuthenticatorChallengeArgs = {
   username: Scalars['String'];
+};
+
+
+export type QueryGetLifeArgs = {
+  id: Scalars['ObjectID'];
 };
 
 
@@ -359,6 +413,13 @@ export type RetrieveLinkQueryVariables = Exact<{
 
 
 export type RetrieveLinkQuery = { __typename?: 'Query', retrieveLink?: { __typename: 'ResetPasswordLink', token: string } | null };
+
+export type LifeDataFragment = { __typename?: 'Life', id?: string | null, firstName: string, lastName: string, fullName: string, title: string, birthday: string | Date, hobbies: Array<string> };
+
+export type ListLivesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ListLivesQuery = { __typename?: 'Query', lives: Array<{ __typename?: 'Life', id?: string | null, firstName: string, lastName: string, fullName: string, title: string, birthday: string | Date, hobbies: Array<string> }> };
 
 type SystemMessageData_MessageNotice_Fragment = { __typename: 'MessageNotice', date: string | Date, message: string };
 
@@ -507,6 +568,7 @@ export type CompleteWebPublicKeyCredentialRegistrationMutationVariables = Exact<
 
 export type CompleteWebPublicKeyCredentialRegistrationMutation = { __typename?: 'Mutation', completeWebPublicKeyCredentialRegistration: boolean };
 
+export const LifeDataFragmentDoc = /*#__PURE__*/ {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LifeData"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Life"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"birthday"}},{"kind":"Field","name":{"kind":"Name","value":"hobbies"}}]}}]} as unknown as DocumentNode;
 export const SystemMessageDataFragmentDoc = /*#__PURE__*/ {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SystemMessageData"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SystemMessage"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSessionRevoked"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"displayNotice"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"MessageNotice"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"message"}}]}}]}}]} as unknown as DocumentNode;
 export const UserPreviewDataFragmentDoc = /*#__PURE__*/ {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserPreviewData"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"User"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}}]}}]} as unknown as DocumentNode;
 export const UserListDataFragmentDoc = /*#__PURE__*/ {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserListData"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"User"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"isAuthenticatorEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"isPasswordExpired"}}]}}]} as unknown as DocumentNode;
@@ -541,6 +603,34 @@ export function useRetrieveLinkLazyQuery(baseOptions?: Apollo.LazyQueryHookOptio
 export type RetrieveLinkQueryHookResult = ReturnType<typeof useRetrieveLinkQuery>;
 export type RetrieveLinkLazyQueryHookResult = ReturnType<typeof useRetrieveLinkLazyQuery>;
 export type RetrieveLinkQueryResult = Apollo.QueryResult<RetrieveLinkQuery, RetrieveLinkQueryVariables>;
+export const ListLivesDocument = /*#__PURE__*/ {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"listLives"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"lives"},"name":{"kind":"Name","value":"listLives"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"LifeData"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LifeData"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Life"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"birthday"}},{"kind":"Field","name":{"kind":"Name","value":"hobbies"}}]}}]} as unknown as DocumentNode;
+
+/**
+ * __useListLivesQuery__
+ *
+ * To run a query within a React component, call `useListLivesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useListLivesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useListLivesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useListLivesQuery(baseOptions?: Apollo.QueryHookOptions<ListLivesQuery, ListLivesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ListLivesQuery, ListLivesQueryVariables>(ListLivesDocument, options);
+      }
+export function useListLivesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ListLivesQuery, ListLivesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ListLivesQuery, ListLivesQueryVariables>(ListLivesDocument, options);
+        }
+export type ListLivesQueryHookResult = ReturnType<typeof useListLivesQuery>;
+export type ListLivesLazyQueryHookResult = ReturnType<typeof useListLivesLazyQuery>;
+export type ListLivesQueryResult = Apollo.QueryResult<ListLivesQuery, ListLivesQueryVariables>;
 export const ListenOnSystemDocument = /*#__PURE__*/ {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"listenOnSystem"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"message"},"name":{"kind":"Name","value":"listenSystemMessages"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SystemMessageData"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SystemMessageData"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SystemMessage"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSessionRevoked"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"displayNotice"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"MessageNotice"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"message"}}]}}]}}]} as unknown as DocumentNode;
 
 /**

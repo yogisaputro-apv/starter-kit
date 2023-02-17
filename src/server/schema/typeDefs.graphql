@@ -51,6 +51,25 @@ union ExternalLink = ResetPasswordLink
 
 scalar JSONObject
 
+type Life {
+  """birthday of a Life"""
+  birthday: DateTime!
+  """details of a Life"""
+  description: String!
+  """first name of a Life"""
+  firstName: String!
+  """display full name which is described as first name + last name"""
+  fullName: String!
+  """list of Life's hobbies"""
+  hobbies: [String!]!
+  """Life object ID"""
+  id: ObjectID
+  """last name of a Life"""
+  lastName: String!
+  """title of Life"""
+  title: String!
+}
+
 type MessageNotice {
   date: DateTime!
   message: String!
@@ -73,12 +92,18 @@ type Mutation {
   completeWebPublicKeyCredentialRegistration(response: JSONObject!, token: String!): Boolean!
   """Create a new account/user"""
   createAccount(email: String!, password: String!, username: String!): User!
+  """create new Life document"""
+  createLife(birthday: DateTime!, description: String!, firstName: String!, hobbies: [String!]!, lastName: String!, title: String!): Life!
   """Disable 2FA / Authenticator for the signed user"""
   disableAuthenticator: User!
   """Enable 2FA / Authenticator for the signed user"""
   enableAuthenticator(secret: String!, token: String!): User!
   """Generate a challenge to authenticate with web credentials"""
   generateWebCredentialAuthentication(username: String!): AuthenticationWithWebPublicKeyCredential
+  """get life by ID"""
+  getLife(id: ObjectID!): Life!
+  """List all lives"""
+  listLives: [Life!]!
   """
   Take the Json Web Token (JWT) from headers and returns a new one with a renewed lifetime
   
@@ -128,8 +153,16 @@ type Query {
   generateAuthenticatorChallenge(username: String!): AuthenticationWithWebPublicKeyCredential
   """Generate authenticator secret and qrcode"""
   generateAuthenticatorSetup: AuthenticatorSetup!
+  """
+  get Life based on ID
+  
+  Life ID is required
+  """
+  getLife(id: ObjectID!): Life!
   """Fetch WebAuthn security keys for a username"""
   getWebauthnKeys(username: String!): [String!]!
+  """Fetch list of lives"""
+  listLives: [Life!]!
   """List users"""
   listUsers(filter: UserFilteringRule, pagination: Pagination!, sort: UserSortingRule): PaginatedUsers!
   """Retrieve a link information"""

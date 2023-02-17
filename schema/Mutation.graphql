@@ -84,4 +84,27 @@ type Mutation {
     Revoke user session
     """
     revokeUserSession(id: ObjectID!, displayNotice: Boolean): Boolean!
+
+    """
+    create new Life document
+    """
+    createLife(
+        firstName: String!,
+        lastName: String!,
+        birthday: DateTime!,
+        description: String!,
+        hobbies: [String!]!,
+        title: String!
+    ): Life!
+
+    """
+    List all lives
+    """
+    listLives: [Life!]!
+
+    """
+    get life by ID
+    """
+    getLife(id: ObjectID!): Life!
+    
 }
